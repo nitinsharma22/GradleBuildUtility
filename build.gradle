@@ -1,0 +1,75 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.9.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+		maven {
+      		url "https://plugins.gradle.org/m2/"
+    	}
+	}
+	dependencies {
+		//classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+// START SNIPPET use-build-dashboard-plugin
+apply plugin: 'build-dashboard'
+// END SNIPPET use-build-dashboard-plugin
+apply plugin: 'codenarc'
+apply plugin: 'groovy'
+//apply plugin: 'org.springframework.boot'
+apply plugin: 'eclipse'
+
+
+group = 'com.nitin'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+ // https://mvnrepository.com/artifact/junit/junit
+	testCompile 'junit:junit:4.12'
+	compile 'org.codehaus.groovy:groovy-all:2.4.13'
+	//testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+//Reserving Heap Memory Space for Testing Task
+tasks.withType(Test) {
+    maxHeapSize = "1g"
+}
+//skipping all test tasks (in production) 
+/*
+tasks.withType(Test).each { task ->
+    task.enabled = !env.equals('prod')
+}
+*/
+
+
+
+test {
+    useJUnit {
+        includeCategories 'com.nitin.test.category.UnitTest'
+    }
+}
+
+task runIntegrationTest(type: Test) {
+    useJUnit {
+        includeCategories 'com.nitin.test.category.IntegrationTest'
+    }
+}
+
+task runSmokeTest(type: Test) {
+	description 'Run all Smoke Tests'
+    useJUnit {
+        includeCategories 'com.nitin.test.category.SmokeTest'
+    }
+}
+
+runIntegrationTest.dependsOn test
+
+//build depends on test via check
+check.dependsOn.remove(test)
